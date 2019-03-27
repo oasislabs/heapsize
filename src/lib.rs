@@ -34,7 +34,7 @@ pub unsafe fn heap_size_of<T>(ptr: *const T) -> usize {
     }
 }
 
-#[cfg(not(target_os = "windows"))]
+#[cfg(all(not(target_os = "windows"), not(target_env = "sgx")))]
 unsafe fn heap_size_of_impl(ptr: *const c_void) -> usize {
     // The C prototype is `je_malloc_usable_size(JEMALLOC_USABLE_SIZE_CONST void *ptr)`. On some
     // platforms `JEMALLOC_USABLE_SIZE_CONST` is `const` and on some it is empty. But in practice
@@ -56,6 +56,11 @@ unsafe fn heap_size_of_impl(mut ptr: *const c_void) -> usize {
     }
 
     HeapSize(heap, 0, ptr) as usize
+}
+
+#[cfg(target_env = "sgx")]
+unsafe fn heap_size_of_impl(_ptr: *const c_void) -> usize {
+    0
 }
 
 // The simplest trait for measuring the size of heap data structures. More complex traits that
